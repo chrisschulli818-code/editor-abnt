@@ -1,7 +1,7 @@
 // Servidor mínimo: arquivos estáticos + proxy para a IA (a chave nunca vai ao navegador).
 const http = require('http'), fs = require('fs'), path = require('path');
 const KEY = process.env.GEMINI_API_KEY;
-const MODEL = process.env.MODEL || 'gemini-2.5-flash';
+const MODEL = process.env.MODEL || 'gemini-3.8-flash';
 const PUB = path.join(__dirname, 'dist'); // saída do vite build
 
 const BASE = ' Responda somente com o texto resultante, sem comentários.';
