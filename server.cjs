@@ -37,6 +37,6 @@ http.createServer(async (req, res) => {
   }
   const f = path.join(PUB, req.url === '/' ? 'index.html' : path.normalize(req.url.split('?')[0]));
   if (!f.startsWith(PUB) || !fs.existsSync(f) || fs.statSync(f).isDirectory()) { res.statusCode = 404; return res.end('404'); }
-  res.setHeader('content-type', f.endsWith('.html') ? 'text/html; charset=utf-8' : 'text/plain');
+  res.setHeader('content-type', { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.svg': 'image/svg+xml', '.ico': 'image/x-icon', '.json': 'application/json' }[path.extname(f)] || 'application/octet-stream');
   fs.createReadStream(f).pipe(res);
 }).listen(process.env.PORT || 3000, () => console.log('servidor no ar'));
