@@ -13,16 +13,24 @@ const MODOS = {
   terceira: 'Reescreva o texto do usuário em terceira pessoa e voz impessoal (sem "eu" nem "nós"), em português formal, mantendo o sentido e os fatos.',
 };
 
+// Se o modelo principal estiver sobrecarregado (503) ou indisponível (404), tenta o seguinte.
+const MODELOS = [...new Set([MODEL, 'gemini-flash-latest'])];
+
 async function formalizar(texto, modo) {
-  const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`, {
-    method: 'POST',
-    headers: { 'x-goog-api-key': KEY, 'content-type': 'application/json' },
-    body: JSON.stringify({
-      systemInstruction: { parts: [{ text: MODOS[modo] + BASE }] },
-      contents: [{ role: 'user', parts: [{ text: texto }] }],
-    }),
-  });
-  const j = await r.json();
+  let r, j;
+  for (const m of MODELOS) {
+    r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent`, {
+      method: 'POST',
+      headers: { 'x-goog-api-key': KEY, 'content-type': 'application/json' },
+      body: JSON.stringify({
+        systemInstruction: { parts: [{ text: MODOS[modo] + BASE }] },
+        contents: [{ role: 'user', parts: [{ text: texto }] }],
+      }),
+    });
+    j = await r.json();
+    if (r.ok || (r.status !== 503 && r.status !== 404)) break;
+    console.error('gemini', m, r.status, j.error?.message); // tenta o próximo modelo
+  }
   if (!r.ok) {
     console.error('gemini', r.status, j.error?.message); // o detalhe fica no log do servidor, não vai ao navegador
     throw new Error(r.status === 429 ? 'A IA atingiu o limite de uso. Tente de novo em instantes.'
