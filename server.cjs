@@ -13,23 +13,46 @@ const MODOS = {
   terceira: 'Reescreva o texto do usuário em terceira pessoa e voz impessoal (sem "eu" nem "nós"), em português formal, mantendo o sentido e os fatos.',
 };
 
-// Se o modelo principal estiver sobrecarregado (503) ou indisponível (404), tenta o seguinte.
-const MODELOS = [...new Set([MODEL, 'gemini-flash-latest'])];
+const API = 'https://generativelanguage.googleapis.com/v1beta/models';
+const FALHAS = [404, 429, 503]; // modelo fechado, sem cota ou sobrecarregado: vale tentar outro
+
+// Pergunta ao Google quais modelos de texto a chave acessa: estáveis primeiro, "lite" e "preview" por último. Guarda por 1 h.
+let lista = null;
+async function descobrir() {
+  if (lista) return lista;
+  try {
+    const j = await (await fetch(`${API}?pageSize=200`, { headers: { 'x-goog-api-key': KEY } })).json();
+    const nota = n => (/lite/.test(n) ? 2 : 0) + (/preview|exp/.test(n) ? 1 : 0);
+    lista = (j.models || [])
+      .filter(m => m.supportedGenerationMethods?.includes('generateContent') && /flash/.test(m.name) && !/image|live|tts|audio|embed|learnlm|robotics|computer/.test(m.name))
+      .map(m => m.name.replace('models/', '')).sort((x, y) => nota(x) - nota(y) || y.localeCompare(x));
+    console.log('modelos disponíveis:', lista.join(', '));
+    setTimeout(() => { lista = null; }, 3600000).unref();
+  } catch { return []; }
+  return lista;
+}
+
+async function chamar(m, texto, modo) {
+  const r = await fetch(`${API}/${m}:generateContent`, {
+    method: 'POST',
+    headers: { 'x-goog-api-key': KEY, 'content-type': 'application/json' },
+    body: JSON.stringify({
+      systemInstruction: { parts: [{ text: MODOS[modo] + BASE }] },
+      contents: [{ role: 'user', parts: [{ text: texto }] }],
+    }),
+  });
+  return [r, await r.json()];
+}
 
 async function formalizar(texto, modo) {
-  let r, j;
-  for (const m of MODELOS) {
-    r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent`, {
-      method: 'POST',
-      headers: { 'x-goog-api-key': KEY, 'content-type': 'application/json' },
-      body: JSON.stringify({
-        systemInstruction: { parts: [{ text: MODOS[modo] + BASE }] },
-        contents: [{ role: 'user', parts: [{ text: texto }] }],
-      }),
-    });
-    j = await r.json();
-    if (r.ok || (r.status !== 503 && r.status !== 404)) break;
-    console.error('gemini', m, r.status, j.error?.message); // tenta o próximo modelo
+  let [r, j] = await chamar(MODEL, texto, modo);
+  if (!r.ok && FALHAS.includes(r.status)) {
+    console.error('gemini', MODEL, r.status, j.error?.message);
+    for (const m of (await descobrir()).filter(x => x !== MODEL).slice(0, 4)) { // até 4 alternativas
+      [r, j] = await chamar(m, texto, modo);
+      if (r.ok || !FALHAS.includes(r.status)) { if (r.ok) console.log('respondeu com', m); break; }
+      console.error('gemini', m, r.status, j.error?.message);
+    }
   }
   if (!r.ok) {
     console.error('gemini', r.status, j.error?.message); // o detalhe fica no log do servidor, não vai ao navegador
