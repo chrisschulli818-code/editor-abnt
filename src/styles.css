@@ -125,7 +125,7 @@ h2 { margin: 0; font-size: 12px; font-weight: 650; letter-spacing: .02em; color:
 
 /* Telas estreitas: trilho e painel viram faixas sob a folha */
 @media (max-width: 700px) {
-  .avisos-margem { display: none; }
+  .avisos-margem, .top-actions .lbl { display: none; }
   .sheet-wrap { width: 21cm; }
   .tools { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
   .tools > * { flex: none; }
@@ -150,3 +150,26 @@ h2 { margin: 0; font-size: 12px; font-weight: 650; letter-spacing: .02em; color:
   .sheet { width: auto; min-height: 0; box-shadow: none; }
   .ed { padding: 0; min-height: 0; }
 }
+
+/* Cabeçalho: contador de avisos e páginas (também no celular, onde os avisos da margem somem) */
+.aviso-cont { height: 32px; padding: 0 10px; border: 0; border-radius: 4px; background: oklch(1 0 0 / .14); color: inherit; font-size: 13px; font-variant-numeric: tabular-nums; }
+.aviso-cont:hover { background: oklch(1 0 0 / .24); }
+
+/* Quebras de página estimadas, sobre a folha */
+.quebra { position: absolute; left: 0; right: 0; border-top: 1px dashed oklch(0.7 0.03 165); pointer-events: none; }
+.quebra span { position: absolute; right: 6px; top: 2px; font-size: calc(11px / var(--z, 1)); color: var(--suave); }
+
+/* Sumário, listas e legendas dentro da folha */
+.ed .sum-i { display: flex; align-items: baseline; gap: 4px; }
+.ed .sum-i i { flex: 1; border-bottom: 1px dotted #111; transform: translateY(-.25em); }
+.ed .sum-i span:last-child { text-align: right; }
+
+/* Diálogo da capa */
+.capa-dlg { width: min(440px, 92vw); padding: 20px; border: 1px solid var(--filete); border-radius: 6px; background: var(--painel); color: var(--tinta); }
+.capa-dlg::backdrop { background: oklch(0.25 0.03 165 / .45); }
+.capa-dlg form { display: flex; flex-direction: column; gap: 10px; }
+.capa-dlg label { display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: var(--suave); }
+.capa-dlg small { font-weight: 400; }
+.capa-dlg input, .capa-dlg textarea { padding: 6px 8px; border: 1px solid var(--filete); border-radius: 4px; background: #fff; color: var(--tinta); resize: vertical; }
+.capa-dlg .duas { display: grid; grid-template-columns: 1fr 100px; gap: 10px; }
+@media print { .quebra, .capa-dlg { display: none; } }
