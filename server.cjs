@@ -21,7 +21,7 @@ let lista = null;
 async function descobrir() {
   if (lista) return lista;
   try {
-    const j = await (await fetch(`${API}?pageSize=200`, { headers: { 'x-goog-api-key': KEY } })).json();
+    const j = await (await fetch(`${API}?pageSize=200`, { headers: { 'x-goog-api-key': KEY }, signal: AbortSignal.timeout(8000) })).json();
     const nota = n => (/lite/.test(n) ? 2 : 0) + (/preview|exp/.test(n) ? 1 : 0);
     lista = (j.models || [])
       .filter(m => m.supportedGenerationMethods?.includes('generateContent') && /flash/.test(m.name) && !/image|live|tts|audio|embed|learnlm|robotics|computer/.test(m.name))
@@ -32,8 +32,10 @@ async function descobrir() {
   return lista;
 }
 
+// Cada tentativa tem 10 s; se o Google não responde, conta como sobrecarga (503) e passa para o próximo modelo.
 async function chamar(m, texto, modo) {
   const r = await fetch(`${API}/${m}:generateContent`, {
+    signal: AbortSignal.timeout(10000),
     method: 'POST',
     headers: { 'x-goog-api-key': KEY, 'content-type': 'application/json' },
     body: JSON.stringify({
@@ -43,13 +45,16 @@ async function chamar(m, texto, modo) {
   });
   return [r, await r.json()];
 }
+const tentar = (m, texto, modo) => chamar(m, texto, modo).catch(e => [{ ok: false, status: 503 }, { error: { message: String(e.name) } }]);
 
 async function formalizar(texto, modo) {
-  let [r, j] = await chamar(MODEL, texto, modo);
+  const t0 = Date.now();
+  let [r, j] = await tentar(MODEL, texto, modo);
   if (!r.ok && FALHAS.includes(r.status)) {
     console.error('gemini', MODEL, r.status, j.error?.message);
     for (const m of (await descobrir()).filter(x => x !== MODEL).slice(0, 4)) { // até 4 alternativas
-      [r, j] = await chamar(m, texto, modo);
+      if (Date.now() - t0 > 30000) break; // orçamento total: o aluno não espera mais que isso
+      [r, j] = await tentar(m, texto, modo);
       if (r.ok || !FALHAS.includes(r.status)) { if (r.ok) console.log('respondeu com', m); break; }
       console.error('gemini', m, r.status, j.error?.message);
     }
