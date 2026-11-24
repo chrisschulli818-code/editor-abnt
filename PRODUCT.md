@@ -22,7 +22,7 @@ Um editor em que a ABNT é a configuração padrão, e não um modelo para lembr
 Escrita longa, de documentos com capa, sumário, citações e referências. Saída em PDF e Word. Uso em notebook, em sessões longas.
 
 ## Capabilities and Constraints
-- Editor rico: fonte, tamanho, negrito/itálico/sublinhado, alinhamento, listas, tabela, imagem, citação longa, desfazer/refazer.
+- Editor rico em abas: fonte, tamanho, negrito/itálico/sublinhado/tachado/sub/sobrescrito, cor e realce, espaçamento, recuo, alinhamento, listas, estilos, tabela, imagem, legendas, capa, sumário, quebra de página, localizar e substituir, zoom.
 - Folha A4, margens 3/2/2/3 cm, Times New Roman ou Arial 12, espaçamento 1,5, recuo 1,25 cm, citação longa em 10.
 - Verificador de violações (hoje: fonte, tamanho, espaçamento).
 - Formalização por IA com diff e aceitar/rejeitar, via `server.js` (chave em `ANTHROPIC_API_KEY`).

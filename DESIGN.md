@@ -152,7 +152,7 @@ Paleta restrita: um verde em duas profundidades, neutros esverdeados frios, tres
 
 ## Layout
 
-Grade de tres colunas sob a barra e a faixa de ferramentas: trilho de 240px, bancada flexivel, painel de 300px. A folha A4 (21cm x 29.7cm) fica centrada na bancada com 24px de respiro e nunca e apertada pelos paineis; uma coluna de 150px a direita da folha abriga os avisos de margem. Guias de margem a 1px marcam 3cm em cima e a esquerda, 2cm embaixo e a direita. Ritmo de espacamento em 4, 8, 16 e 24px; paineis com padding 16px 12px e gap de 20px entre secoes.
+Sob a barra verde ficam as abas (Inicio, Inserir, Exibir, Revisao) e uma faixa de opcoes em grupos com legenda de 11px (Historico, Fonte, Paragrafo, Estilos, Edicao...), no modelo funcional do Word mas nas cores da casa: a aba ativa se funde ao painel com um filete verde de 2px no topo, e a IA fica sempre a vista no canto direito da linha de abas. Confirmacoes e localizar/substituir abrem uma barra ambar clara sob a faixa. Na base, uma barra de status verde mostra pagina, palavras e zoom. Grade de tres colunas sob a faixa: trilho de 240px, bancada flexivel, painel de 300px. A folha A4 (21cm x 29.7cm) fica centrada na bancada com 24px de respiro e nunca e apertada pelos paineis; uma coluna de 150px a direita da folha abriga os avisos de margem. Guias de margem a 1px marcam 3cm em cima e a esquerda, 2cm embaixo e a direita. Ritmo de espacamento em 4, 8, 16 e 24px; paineis com padding 16px 12px e gap de 20px entre secoes.
 
 Abaixo de 1000px o trilho e o painel viram faixas empilhadas sob a folha; abaixo de 700px os avisos de margem somem (permanecem na lista lateral) e a faixa de ferramentas rola na horizontal. Na impressao so a folha sai, com margens ABNT e numero da pagina no canto superior direito.
 
@@ -202,7 +202,7 @@ Titulo do documento transparente na barra, filete aparece no hover; seletores da
 - **Do** respeitar `prefers-reduced-motion`; movimento so em entrada de aviso e sugestao.
 
 ### Don't:
-- **Don't** reproduzir a faixa cinza do Word nem um painel de chat de IA generico.
+- **Don't** reproduzir o visual cinza do Word (so o modelo de abas e grupos, em verde-biblioteca) nem um painel de chat de IA generico.
 - **Don't** usar vermelho para destaque, selecao ou marca.
 - **Don't** adicionar sombras fora da folha nem raios acima de 4px (exceto o contador).
 - **Don't** usar serifa na interface nem sans dentro da folha.

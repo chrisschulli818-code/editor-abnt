@@ -1,16 +1,15 @@
 import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
-import {
-  Undo2, Redo2, Bold, Italic, Underline, AlignLeft, AlignCenter, AlignRight, AlignJustify,
-  List, ListOrdered, Table, Image, Quote, Heading1, Heading2, FileDown, FileText, GraduationCap,
-  Library, LayoutTemplate, Check, X, Save, FolderOpen,
-} from 'lucide-react';
-import { estrutura, verificar, diff, paragrafos, baixar, limpar, htmlSumario, htmlLista, htmlLegenda, htmlCapa, TOPO, PG, MODELO } from './abnt.js';
+import { Library, FileDown, FileText, Check, X, Save, FolderOpen, Minus, Plus } from 'lucide-react';
+import { estrutura, verificar, diff, paragrafos, baixar, limpar, htmlSumario, htmlLista, htmlLegenda, htmlCapa, paginaDe, TOPO, PG, MODELO } from './abnt.js';
 import { baixarDocx } from './docx.js';
+import Faixa from './Faixa.jsx';
 
 const NOME_FAM = { pre: 'Pré-textual', tex: 'Textual', pos: 'Pós-textual' };
 const FOLHA = 793; // 21 cm em px CSS
 const GUTTER = 150; // coluna dos avisos, à direita da folha
 const CHAVE = 'abnt-doc';
+const FMT0 = { fonte: 'Times New Roman', tam: 12, lh: 1.5, al: 'justify', bloco: 'p' };
+const escRe = t => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 const MODOS = { formalizar: 'Formalizar', corrigir: 'Corrigir', resumir: 'Resumir', ampliar: 'Ampliar', terceira: '3ª pessoa' };
 
 export default function App() {
@@ -20,14 +19,18 @@ export default function App() {
   const deb = useRef();
   const [secoes, setSecoes] = useState([]);
   const [avisos, setAvisos] = useState([]);
-  const [zoom, setZoom] = useState(1);
+  const [ajuste, setAjuste] = useState(1), [zoomU, setZoomU] = useState(null); // ajuste = zoom que cabe na tela; zoomU = escolha do usuário
+  const zoom = zoomU ?? ajuste;
   const [sug, setSug] = useState(null); // { orig, texto, range }
   const [busy, setBusy] = useState(false);
   const [erro, setErro] = useState('');
   const [semSalvar, setSemSalvar] = useState(false);
   const [pergunta, setPergunta] = useState(null); // { msg, acao }: confirmação inline na barra
   const [modo, setModo] = useState('formalizar');
-  const [paginas, setPaginas] = useState(1);
+  const [paginas, setPaginas] = useState(1), [pag, setPag] = useState(1), [pal, setPal] = useState(0), [car, setCar] = useState(0), [rev, setRev] = useState(0);
+  const [aba, setAba] = useState('Início'), [fmt, setFmt] = useState(FMT0);
+  const [guias, setGuias] = useState(true), [avisosM, setAvisosM] = useState(true), [quebras, setQuebras] = useState(true), [lateral, setLateral] = useState(true), [ortografia, setOrtografia] = useState(true);
+  const [achar, setAchar] = useState(false), [q, setQ] = useState(''), [rep, setRep] = useState('');
 
   const tituloRef = useRef(titulo); tituloRef.current = titulo;
   const analisar = useCallback(() => {
@@ -35,6 +38,7 @@ export default function App() {
     setSecoes(estrutura(ed.current));
     setAvisos(verificar(ed.current));
     setPaginas(Math.max(1, Math.ceil((ed.current.offsetHeight - TOPO - 75.6 - 2) / PG)));
+    const t = ed.current.innerText.trim(); setPal(t ? t.split(/\s+/).length : 0); setCar(t.replace(/\n/g, '').length); setRev(n => n + 1);
     try { localStorage.setItem(CHAVE, JSON.stringify({ html: ed.current.innerHTML, titulo: tituloRef.current })); setSemSalvar(false); } catch { setSemSalvar(true); } // cota cheia (fotos grandes): avisa em vez de falhar calado
   }, []);
   const agendar = () => { clearTimeout(deb.current); deb.current = setTimeout(analisar, 200); }; // digitação: evita recalcular a cada tecla
@@ -45,22 +49,44 @@ export default function App() {
     analisar();
   }, [analisar]);
 
+  // Formato sob o cursor: acende os botões e preenche fonte, tamanho e espaçamento como o Word.
+  const lerFmt = useCallback(sel => {
+    const q = c => { try { return document.queryCommandState(c); } catch { return false; } };
+    const n = sel.anchorNode, el = n.nodeType === 1 ? n : n.parentElement;
+    if (!el) return;
+    const bl = el.closest('h1,h2,blockquote,li,p,td') || el, cs = getComputedStyle(el), bs = getComputedStyle(bl);
+    const novo = {
+      b: q('bold'), i: q('italic'), u: q('underline'), s: q('strikeThrough'), sub: q('subscript'), sup: q('superscript'), ul: q('insertUnorderedList'), ol: q('insertOrderedList'),
+      al: bs.textAlign === 'start' ? 'left' : bs.textAlign, bloco: bl.tagName.toLowerCase(),
+      fonte: cs.fontFamily.split(',')[0].replace(/["']/g, '').trim(), tam: Math.round(parseFloat(cs.fontSize) * .75),
+      lh: Math.round(parseFloat(bs.lineHeight) / parseFloat(bs.fontSize) * 100) / 100 || 1.5,
+    };
+    setFmt(p => (JSON.stringify(p) === JSON.stringify(novo) ? p : novo));
+    setPag(paginaDe(bl, ed.current));
+  }, []);
+
   // Seleção guardada: clicar em botões ou selects a perderia.
   useEffect(() => {
     const f = () => {
       const s = getSelection();
-      if (s.rangeCount && ed.current?.contains(s.anchorNode)) saved.current = s.getRangeAt(0).cloneRange();
+      if (s.rangeCount && ed.current?.contains(s.anchorNode)) { saved.current = s.getRangeAt(0).cloneRange(); lerFmt(s); }
     };
     document.addEventListener('selectionchange', f);
     return () => document.removeEventListener('selectionchange', f);
+  }, [lerFmt]);
+
+  useEffect(() => { // Ctrl+H abre localizar e substituir, como no Word
+    const k = e => { if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'h') { e.preventDefault(); setAchar(true); } };
+    document.addEventListener('keydown', k);
+    return () => document.removeEventListener('keydown', k);
   }, []);
 
   // Ajusta a folha à largura disponível, reservando a coluna dos avisos.
   useEffect(() => {
-    const ro = new ResizeObserver(([e]) => setZoom(Math.min(1, (e.contentRect.width - 48) / (FOLHA + (e.contentRect.width < 700 ? 0 : GUTTER)))));
+    const ro = new ResizeObserver(([e]) => setAjuste(Math.min(1, (e.contentRect.width - 48) / (FOLHA + (e.contentRect.width < 700 || !avisosM ? 0 : GUTTER)))));
     ro.observe(bench.current);
     return () => ro.disconnect();
-  }, []);
+  }, [avisosM]);
 
   useEffect(() => { const t = setTimeout(analisar, 0); return () => clearTimeout(t); }, [analisar, zoom, titulo]);
 
@@ -74,6 +100,38 @@ export default function App() {
     ed.current.querySelectorAll('[style*="xxx-large"],[style*="xx-large"]').forEach(n => { n.style.fontSize = pt + 'pt'; });
     analisar();
   };
+  const linha = v => { // espaçamento só nos parágrafos da seleção
+    foco(); const r = saved.current;
+    if (r) [...ed.current.querySelectorAll('p,h1,h2,li,blockquote')].filter(b => r.intersectsNode(b)).forEach(b => { b.style.lineHeight = v; });
+    analisar();
+  };
+  const estilo = tag => exec('formatBlock', tag);
+  const tabela = t => { const [l, c] = t.split('x').map(Number); colocar('<table>' + `<tr>${'<td>&nbsp;</td>'.repeat(c)}</tr>`.repeat(l) + '</table><p><br></p>'); analisar(); };
+
+  // Localizar e substituir. shortcut: só acha texto dentro de um mesmo nó (uma palavra com negrito no meio não casa); ampliar se for preciso.
+  const ocorr = useMemo(() => (achar && q ? (ed.current.innerText.match(new RegExp(escRe(q), 'gi')) || []).length : 0), [achar, q, rev]);
+  function proximo() {
+    const w = document.createTreeWalker(ed.current, NodeFilter.SHOW_TEXT), ns = [];
+    while (w.nextNode()) ns.push(w.currentNode);
+    if (!q || !ns.length) return;
+    const r0 = saved.current, ok = r0 && ns.includes(r0.endContainer), ini = ok ? ns.indexOf(r0.endContainer) : 0, k = q.toLowerCase();
+    for (let j = 0; j <= ns.length; j++) {
+      const i = (ini + j) % ns.length, p = ns[i].nodeValue.toLowerCase().indexOf(k, j === 0 && ok ? r0.endOffset : 0);
+      if (p < 0) continue;
+      const r = document.createRange(); r.setStart(ns[i], p); r.setEnd(ns[i], p + q.length);
+      ed.current.focus(); const s = getSelection(); s.removeAllRanges(); s.addRange(r);
+      ns[i].parentElement.scrollIntoView({ block: 'center', behavior: 'smooth' });
+      return;
+    }
+  }
+  function trocarTudo() {
+    if (!q) return;
+    const w = document.createTreeWalker(ed.current, NodeFilter.SHOW_TEXT), ns = [], re = new RegExp(escRe(q), 'gi');
+    while (w.nextNode()) ns.push(w.currentNode);
+    ns.forEach(t => { t.nodeValue = t.nodeValue.replace(re, () => rep); });
+    analisar();
+  }
+
   const substituir = (msg, acao) => (ed.current.innerText.trim() ? setPergunta({ msg, acao: () => { setPergunta(null); acao(); } }) : acao()); // evita apagar o trabalho sem perguntar
   const modelo = () => substituir('Substituir o texto atual?', () => { ed.current.innerHTML = MODELO; analisar(); });
 
@@ -99,6 +157,7 @@ export default function App() {
   function inserir(k) {
     const e = ed.current;
     if (k === 'capa') return capaRef.current.showModal();
+    if (k === 'quebra') { colocar('<p class="pb" style="text-indent:0;page-break-after:always"><br></p>'); return analisar(); }
     if (k === 'sumario') { bloco('.sumario', htmlSumario(e)); bloco('.sumario', htmlSumario(e)); } // 2ª passada: o próprio sumário muda as páginas
     else if (k === 'lista-Figura' || k === 'lista-Tabela') { const t = k.slice(6); bloco(`.lista-ilus[data-k="${t}"]`, htmlLista(e, t)); }
     else colocar(htmlLegenda(e, k));
@@ -144,10 +203,6 @@ export default function App() {
   }, [avisos]);
   const ir = el => el.scrollIntoView({ behavior: 'smooth', block: 'center' });
 
-  const Btn = ({ icon: I, label, onClick, on }) => (
-    <button className="tool" title={label} aria-label={label} onMouseDown={e => e.preventDefault()} onClick={onClick} {...(on || {})}><I size={18} strokeWidth={1.75} /></button>
-  );
-
   return (
     <div className="app">
       <header className="top">
@@ -164,61 +219,30 @@ export default function App() {
         </div>
       </header>
 
-      <div className="tools" role="toolbar" aria-label="Formatação">
-        <Btn icon={Undo2} label="Desfazer" onClick={() => exec('undo')} />
-        <Btn icon={Redo2} label="Refazer" onClick={() => exec('redo')} />
-        <span className="sep" />
-        <select aria-label="Fonte" onChange={e => exec('fontName', e.target.value)} defaultValue="Times New Roman">
-          <option>Times New Roman</option><option>Arial</option>
-        </select>
-        <select aria-label="Tamanho" onChange={e => tamanho(e.target.value)} defaultValue="12">
-          <option>10</option><option>12</option><option>14</option><option>16</option>
-        </select>
-        <span className="sep" />
-        <Btn icon={Bold} label="Negrito" onClick={() => exec('bold')} />
-        <Btn icon={Italic} label="Itálico" onClick={() => exec('italic')} />
-        <Btn icon={Underline} label="Sublinhado" onClick={() => exec('underline')} />
-        <span className="sep" />
-        <Btn icon={AlignLeft} label="Alinhar à esquerda" onClick={() => exec('justifyLeft')} />
-        <Btn icon={AlignCenter} label="Centralizar" onClick={() => exec('justifyCenter')} />
-        <Btn icon={AlignRight} label="Alinhar à direita" onClick={() => exec('justifyRight')} />
-        <Btn icon={AlignJustify} label="Justificar" onClick={() => exec('justifyFull')} />
-        <span className="sep" />
-        <Btn icon={List} label="Lista" onClick={() => exec('insertUnorderedList')} />
-        <Btn icon={ListOrdered} label="Lista numerada" onClick={() => exec('insertOrderedList')} />
-        <Btn icon={Table} label="Inserir tabela" onClick={() => exec('insertHTML', '<table>' + '<tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>'.repeat(3) + '</table><p></p>')} />
-        <Btn icon={Image} label="Inserir imagem" onClick={() => fileIn.current.click()} />
-        <input ref={fileIn} type="file" accept="image/*" hidden onChange={imagem} />
-        <span className="sep" />
-        <Btn icon={Heading1} label="Seção primária" onClick={() => exec('formatBlock', 'h1')} />
-        <Btn icon={Heading2} label="Seção secundária" onClick={() => exec('formatBlock', 'h2')} />
-        <Btn icon={Quote} label="Citação longa (recuo 4 cm, fonte 10)" onClick={() => exec('formatBlock', 'blockquote')} />
-        <select aria-label="Inserir" value="" onChange={e => inserir(e.target.value)}>
-          <option value="" disabled>Inserir…</option>
-          <option value="capa">Capa e folha de rosto</option>
-          <option value="sumario">Sumário</option>
-          <option value="Figura">Legenda de figura</option>
-          <option value="Tabela">Legenda de tabela</option>
-          <option value="lista-Figura">Lista de ilustrações</option>
-          <option value="lista-Tabela">Lista de tabelas</option>
-        </select>
-        {pergunta ? (
-          <span className="confirma" role="alertdialog" aria-label="Confirmar" onKeyDown={e => e.key === 'Escape' && setPergunta(null)}>
-            {pergunta.msg}
-            <button className="primary" autoFocus onClick={pergunta.acao}>Substituir</button>
-            <button className="ghost" onClick={() => setPergunta(null)}>Cancelar</button>
-          </span>
-        ) : <button className="ghost" onMouseDown={e => e.preventDefault()} onClick={modelo}><LayoutTemplate size={16} aria-hidden /> Modelo ABNT</button>}
-        <span className="grow" />
-        <select aria-label="O que a IA faz" value={modo} onChange={e => setModo(e.target.value)}>
-          {Object.entries(MODOS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
-        </select>
-        <button className="primary" onMouseDown={e => e.preventDefault()} onClick={formalizar} disabled={busy}>
-          <GraduationCap size={17} aria-hidden /> {busy ? 'Aguarde…' : MODOS[modo]}
-        </button>
-      </div>
+      <Faixa aba={aba} setAba={setAba} fmt={fmt} modo={modo} setModo={setModo} MODOS={MODOS} busy={busy} onIA={formalizar}
+        a={{ exec, tamanho, linha, cor: exec, bloco: estilo, inserir, tabela, modelo, abrirImagem: () => fileIn.current.click(), achar: () => setAchar(true),
+          irAvisos: () => { setLateral(true); setTimeout(() => document.querySelector('.side').scrollIntoView({ behavior: 'smooth' }), 0); } }}
+        v={{ zoomU, setZoomU, zoom, guias, setGuias, avisosM, setAvisosM, quebras, setQuebras, lateral, setLateral, ortografia, setOrtografia }} />
+      <input ref={fileIn} type="file" accept="image/*" hidden onChange={imagem} />
+      {pergunta && (
+        <div className="barra" role="alertdialog" aria-label="Confirmar" onKeyDown={e => e.key === 'Escape' && setPergunta(null)}>
+          <span>{pergunta.msg}</span>
+          <button className="primary" autoFocus onClick={pergunta.acao}>Substituir</button>
+          <button className="ghost" onClick={() => setPergunta(null)}>Cancelar</button>
+        </div>
+      )}
+      {achar && (
+        <div className="barra" role="search" aria-label="Localizar e substituir" onKeyDown={e => e.key === 'Escape' && setAchar(false)}>
+          <label>Localizar <input autoFocus value={q} onChange={e => setQ(e.target.value)} onKeyDown={e => e.key === 'Enter' && proximo()} /></label>
+          <label>Substituir por <input value={rep} onChange={e => setRep(e.target.value)} /></label>
+          <span className="cont" aria-live="polite">{q ? `${ocorr} ${ocorr === 1 ? 'ocorrência' : 'ocorrências'}` : '—'}</span>
+          <button className="ghost" onClick={proximo} disabled={!q}>Próxima</button>
+          <button className="ghost" onClick={trocarTudo} disabled={!q || !ocorr}>Substituir tudo</button>
+          <button className="tool" aria-label="Fechar" onClick={() => setAchar(false)}><X size={18} strokeWidth={1.75} /></button>
+        </div>
+      )}
 
-      <div className="work">
+      <div className={'work' + (lateral ? '' : ' sem-lateral')}>
         <nav className="rail" aria-label="Estrutura do trabalho">
           <h2>Estrutura</h2>
           {secoes.length === 0 && <p className="vazio">Os títulos do trabalho aparecem aqui, numerados como na NBR 6024.</p>}
@@ -239,11 +263,11 @@ export default function App() {
 
         <main className="bench" ref={bench}>
           <div className="stage" style={{ zoom, '--z': zoom }}>
-            <div className="sheet-wrap">
-              <div className="sheet">
+            <div className={'sheet-wrap' + (avisosM ? '' : ' sem-avisos')}>
+              <div className={'sheet' + (guias ? '' : ' sem-guias') + (quebras ? '' : ' sem-quebras')}>
                 <div className="guia" aria-hidden />
                 {Array.from({ length: paginas - 1 }, (_, i) => <div key={i} className="quebra" style={{ top: TOPO + PG * (i + 1) }} aria-hidden><span>página {i + 2}</span></div>)}
-                <div ref={ed} className="ed" contentEditable suppressContentEditableWarning spellCheck lang="pt-BR" role="textbox" aria-multiline="true" aria-label="Texto do trabalho" onInput={agendar} />
+                <div ref={ed} className="ed" contentEditable suppressContentEditableWarning spellCheck={ortografia} lang="pt-BR" role="textbox" aria-multiline="true" aria-label="Texto do trabalho" onInput={agendar} />
               </div>
               <div className="avisos-margem" aria-hidden>
                 {chips.map((a, i) => (
@@ -279,6 +303,16 @@ export default function App() {
           </section>
         </aside>
       </div>
+      <footer className="status">
+        <span>Página {Math.min(pag, paginas)} de {paginas}</span>
+        <span>{pal} {pal === 1 ? 'palavra' : 'palavras'}</span>
+        <span className="so-largo">{car} caracteres</span>
+        <span className="grow" />
+        <button className="status-btn" aria-label="Diminuir zoom" onClick={() => setZoomU(Math.max(.5, Math.round(zoom * 10) / 10 - .1))}><Minus size={14} /></button>
+        <input type="range" min="50" max="200" step="5" value={Math.round(zoom * 100)} onChange={e => setZoomU(e.target.value / 100)} aria-label="Zoom" />
+        <button className="status-btn" aria-label="Aumentar zoom" onClick={() => setZoomU(Math.min(2, Math.round(zoom * 10) / 10 + .1))}><Plus size={14} /></button>
+        <button className="status-btn pct" onClick={() => setZoomU(null)} title="Ajustar à largura">{Math.round(zoom * 100)}%</button>
+      </footer>
       <dialog ref={capaRef} className="capa-dlg">
         <form method="dialog" key={titulo} onSubmit={aplicarCapa}>
           <h2>Capa e folha de rosto</h2>
