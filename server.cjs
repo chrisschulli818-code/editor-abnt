@@ -22,7 +22,7 @@ async function descobrir() {
   if (lista) return lista;
   try {
     const j = await (await fetch(`${API}?pageSize=200`, { headers: { 'x-goog-api-key': KEY }, signal: AbortSignal.timeout(8000) })).json();
-    const nota = n => (/lite/.test(n) ? 2 : 0) + (/preview|exp/.test(n) ? 1 : 0);
+    const nota = n => (/lite/.test(n) ? 2 : 0) + (/preview|exp|omni/.test(n) ? 1 : 0);
     lista = (j.models || [])
       .filter(m => m.supportedGenerationMethods?.includes('generateContent') && /flash/.test(m.name) && !/image|live|tts|audio|embed|learnlm|robotics|computer/.test(m.name))
       .map(m => m.name.replace('models/', '')).sort((x, y) => nota(x) - nota(y) || y.localeCompare(x));
@@ -52,7 +52,7 @@ async function formalizar(texto, modo) {
   let [r, j] = await tentar(MODEL, texto, modo);
   if (!r.ok && FALHAS.includes(r.status)) {
     console.error('gemini', MODEL, r.status, j.error?.message);
-    for (const m of (await descobrir()).filter(x => x !== MODEL).slice(0, 4)) { // até 4 alternativas
+    for (const m of (await descobrir()).filter(x => x !== MODEL).slice(0, 8)) { // até 8 alternativas
       if (Date.now() - t0 > 30000) break; // orçamento total: o aluno não espera mais que isso
       [r, j] = await tentar(m, texto, modo);
       if (r.ok || !FALHAS.includes(r.status)) { if (r.ok) console.log('respondeu com', m); break; }
