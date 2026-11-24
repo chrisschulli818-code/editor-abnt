@@ -1,22 +1,23 @@
 // Servidor mínimo: arquivos estáticos + proxy para a IA (a chave nunca vai ao navegador).
 const http = require('http'), fs = require('fs'), path = require('path');
-const KEY = process.env.ANTHROPIC_API_KEY;
-const MODEL = process.env.MODEL || 'claude-sonnet-5-5';
+const KEY = process.env.GEMINI_API_KEY;
+const MODEL = process.env.MODEL || 'gemini-2.5-flash';
 const PUB = path.join(__dirname, 'dist'); // saída do vite build
 
 async function formalizar(texto) {
-  const r = await fetch('https://api.anthropic.com/v1/messages', {
+  const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`, {
     method: 'POST',
-    headers: { 'x-api-key': KEY, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
+    headers: { 'x-goog-api-key': KEY, 'content-type': 'application/json' },
     body: JSON.stringify({
-      model: MODEL, max_tokens: 4096,
-      system: 'Reescreva o texto do usuário em português formal e acadêmico, mantendo o sentido, os fatos e os parágrafos. Não adicione informações. Responda somente com o texto reescrito.',
-      messages: [{ role: 'user', content: texto }],
+      systemInstruction: { parts: [{ text: 'Reescreva o texto do usuário em português formal e acadêmico, mantendo o sentido, os fatos e os parágrafos. Não adicione informações. Responda somente com o texto reescrito.' }] },
+      contents: [{ role: 'user', parts: [{ text: texto }] }],
     }),
   });
   const j = await r.json();
   if (!r.ok) throw new Error(j.error?.message || 'Erro na API');
-  return j.content[0].text;
+  const out = j.candidates?.[0]?.content?.parts?.map(p => p.text).join('');
+  if (!out) throw new Error('A IA não devolveu texto (conteúdo bloqueado ou vazio).');
+  return out;
 }
 
 http.createServer(async (req, res) => {
@@ -24,7 +25,7 @@ http.createServer(async (req, res) => {
     let body = '';
     for await (const c of req) body += c;
     try {
-      if (!KEY) throw new Error('Defina ANTHROPIC_API_KEY antes de iniciar o servidor.');
+      if (!KEY) throw new Error('Defina GEMINI_API_KEY antes de iniciar o servidor.');
       const { texto } = JSON.parse(body);
       if (!texto || texto.length > 20000) throw new Error('Texto vazio ou maior que 20.000 caracteres.');
       res.setHeader('content-type', 'application/json');

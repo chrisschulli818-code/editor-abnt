@@ -6,5 +6,5 @@ services:
     buildCommand: npm install --include=dev && npm run build
     startCommand: node server.cjs
     envVars:
-      - key: ANTHROPIC_API_KEY
+      - key: GEMINI_API_KEY
         sync: false # você cola a chave no painel do Render; ela não vai para o repositório
