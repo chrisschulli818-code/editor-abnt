@@ -1,0 +1,127 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-24T00:00:00.000Z",
+  "title": "Design System: Editor ABNT",
+  "extensions": {
+    "colorMeta": {
+      "verde-biblioteca": { "role": "primary", "displayName": "Verde Biblioteca", "canonical": "oklch(0.32 0.06 165)", "tonalRamp": ["oklch(0.15 0.03 165)", "oklch(0.22 0.045 165)", "oklch(0.32 0.06 165)", "oklch(0.45 0.07 165)", "oklch(0.58 0.07 165)", "oklch(0.72 0.06 165)", "oklch(0.85 0.04 165)", "oklch(0.94 0.02 165)"] },
+      "verde-leitura": { "role": "primary", "displayName": "Verde Leitura", "canonical": "oklch(0.42 0.09 165)", "tonalRamp": ["oklch(0.18 0.04 165)", "oklch(0.28 0.07 165)", "oklch(0.42 0.09 165)", "oklch(0.52 0.1 165)", "oklch(0.64 0.09 165)", "oklch(0.76 0.07 165)", "oklch(0.88 0.04 165)", "oklch(0.95 0.02 165)"] },
+      "bancada": { "role": "neutral", "displayName": "Bancada", "canonical": "oklch(0.94 0.01 160)", "tonalRamp": ["oklch(0.2 0.01 160)", "oklch(0.35 0.015 160)", "oklch(0.5 0.015 160)", "oklch(0.65 0.015 160)", "oklch(0.78 0.012 160)", "oklch(0.86 0.011 160)", "oklch(0.94 0.01 160)", "oklch(0.975 0.006 160)"] },
+      "painel": { "role": "neutral", "displayName": "Painel", "canonical": "oklch(0.975 0.006 160)", "tonalRamp": ["oklch(0.2 0.01 160)", "oklch(0.35 0.015 160)", "oklch(0.5 0.015 160)", "oklch(0.65 0.015 160)", "oklch(0.78 0.012 160)", "oklch(0.88 0.01 160)", "oklch(0.94 0.008 160)", "oklch(0.975 0.006 160)"] },
+      "tinta": { "role": "neutral", "displayName": "Tinta", "canonical": "oklch(0.25 0.025 165)", "tonalRamp": ["oklch(0.15 0.02 165)", "oklch(0.25 0.025 165)", "oklch(0.35 0.025 165)", "oklch(0.45 0.025 165)", "oklch(0.58 0.022 165)", "oklch(0.72 0.018 165)", "oklch(0.86 0.012 165)", "oklch(0.95 0.006 165)"] },
+      "tinta-suave": { "role": "neutral", "displayName": "Tinta Suave", "canonical": "oklch(0.42 0.025 165)", "tonalRamp": ["oklch(0.2 0.02 165)", "oklch(0.3 0.025 165)", "oklch(0.42 0.025 165)", "oklch(0.52 0.025 165)", "oklch(0.64 0.022 165)", "oklch(0.76 0.018 165)", "oklch(0.88 0.012 165)", "oklch(0.96 0.006 165)"] },
+      "filete": { "role": "neutral", "displayName": "Filete", "canonical": "oklch(0.85 0.012 160)", "tonalRamp": ["oklch(0.4 0.015 160)", "oklch(0.5 0.015 160)", "oklch(0.6 0.015 160)", "oklch(0.7 0.014 160)", "oklch(0.78 0.013 160)", "oklch(0.85 0.012 160)", "oklch(0.91 0.01 160)", "oklch(0.96 0.006 160)"] },
+      "lombada-pre": { "role": "secondary", "displayName": "Ambar Pre-textual", "canonical": "oklch(0.84 0.14 82)", "tonalRamp": ["oklch(0.3 0.06 80)", "oklch(0.45 0.09 80)", "oklch(0.6 0.12 82)", "oklch(0.72 0.14 82)", "oklch(0.84 0.14 82)", "oklch(0.9 0.1 85)", "oklch(0.95 0.06 85)", "oklch(0.98 0.03 85)"] },
+      "lombada-pos": { "role": "secondary", "displayName": "Ardosia Pos-textual", "canonical": "oklch(0.44 0.06 250)", "tonalRamp": ["oklch(0.2 0.03 250)", "oklch(0.3 0.045 250)", "oklch(0.44 0.06 250)", "oklch(0.55 0.06 250)", "oklch(0.67 0.05 250)", "oklch(0.78 0.04 250)", "oklch(0.88 0.025 250)", "oklch(0.95 0.012 250)"] },
+      "correcao": { "role": "tertiary", "displayName": "Vermelho Correcao", "canonical": "oklch(0.5 0.19 28)", "tonalRamp": ["oklch(0.22 0.08 28)", "oklch(0.32 0.12 28)", "oklch(0.4 0.16 28)", "oklch(0.5 0.19 28)", "oklch(0.62 0.17 28)", "oklch(0.76 0.1 28)", "oklch(0.88 0.05 28)", "oklch(0.96 0.03 28)"] },
+      "correcao-fundo": { "role": "tertiary", "displayName": "Fundo de Correcao", "canonical": "oklch(0.96 0.03 28)", "tonalRamp": ["oklch(0.4 0.14 28)", "oklch(0.55 0.14 28)", "oklch(0.7 0.1 28)", "oklch(0.8 0.07 28)", "oklch(0.88 0.05 28)", "oklch(0.92 0.04 28)", "oklch(0.96 0.03 28)", "oklch(0.985 0.012 28)"] },
+      "folha": { "role": "neutral", "displayName": "Folha", "canonical": "#ffffff", "tonalRamp": ["#111111", "#333333", "#555555", "#777777", "#999999", "#bbbbbb", "#e0e0e0", "#ffffff"] }
+    },
+    "typographyMeta": {
+      "ui": { "displayName": "Interface", "purpose": "Controles, campos, trilho, notas." },
+      "label": { "displayName": "Rotulo de secao", "purpose": "Titulos do painel lateral." },
+      "lombada": { "displayName": "Lombada", "purpose": "Numeracao progressiva e Pre/Pos nas etiquetas." },
+      "folha": { "displayName": "Folha ABNT", "purpose": "Texto do trabalho dentro da folha A4 e no diff." }
+    },
+    "shadows": [
+      { "name": "folha", "value": "0 1px 2px oklch(0.3 0.03 160 / .2), 0 8px 24px oklch(0.3 0.03 160 / .12)", "purpose": "Unica sombra do sistema: levanta a folha A4 da bancada." }
+    ],
+    "motion": [
+      { "name": "ease", "value": "cubic-bezier(0.16, 1, 0.3, 1)", "purpose": "Entrada de avisos de margem (350ms) e da sugestao da IA (400ms); desligada com prefers-reduced-motion." }
+    ],
+    "breakpoints": [
+      { "name": "painéis empilhados", "value": "1000px" },
+      { "name": "sem avisos de margem", "value": "700px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Acao principal por contexto (Formalizar, Aceitar).",
+      "html": "<button class=\"ds-primary\">Formalizar</button>",
+      "css": ".ds-primary { display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 12px; border-radius: 4px; border: 1px solid oklch(0.42 0.09 165); background: oklch(0.42 0.09 165); color: #fff; font: 600 14px 'Segoe UI', system-ui, sans-serif; cursor: pointer; } .ds-primary:hover { background: oklch(0.32 0.06 165); } .ds-primary:focus-visible { outline: 2px solid oklch(0.42 0.09 165); outline-offset: 2px; } .ds-primary:disabled { opacity: .6; cursor: progress; }"
+    },
+    {
+      "name": "Ghost Button",
+      "kind": "button",
+      "refersTo": "button-ghost",
+      "description": "Acao secundaria com filete (Rejeitar, Modelo ABNT).",
+      "html": "<button class=\"ds-ghost\">Rejeitar</button>",
+      "css": ".ds-ghost { display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 12px; border-radius: 4px; border: 1px solid oklch(0.85 0.012 160); background: transparent; color: oklch(0.25 0.025 165); font: 14px 'Segoe UI', system-ui, sans-serif; cursor: pointer; } .ds-ghost:hover { background: oklch(0.9 0.02 160); } .ds-ghost:focus-visible { outline: 2px solid oklch(0.42 0.09 165); outline-offset: 2px; }"
+    },
+    {
+      "name": "Tool Button",
+      "kind": "button",
+      "refersTo": "faixa-ferramentas",
+      "description": "Botao de icone 32px da faixa de ferramentas.",
+      "html": "<button class=\"ds-tool\" aria-label=\"Negrito\"><svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M6 12h9a4 4 0 0 1 0 8H7a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h7a4 4 0 0 1 0 8\"/></svg></button>",
+      "css": ".ds-tool { display: grid; place-items: center; width: 32px; height: 32px; border: 0; border-radius: 4px; background: transparent; color: oklch(0.25 0.025 165); cursor: pointer; } .ds-tool:hover { background: oklch(0.9 0.02 160); } .ds-tool:active { background: oklch(0.86 0.03 160); } .ds-tool:focus-visible { outline: 2px solid oklch(0.42 0.09 165); outline-offset: 2px; }"
+    },
+    {
+      "name": "Lombada",
+      "kind": "custom",
+      "refersTo": "lombada-textual",
+      "description": "Etiqueta de numeracao progressiva em tres familias: pre (ambar), textual (verde), pos (ardosia).",
+      "html": "<span class=\"ds-lombada ds-pre\">Pré</span> <span class=\"ds-lombada ds-tex\">2.1</span> <span class=\"ds-lombada ds-pos\">Pós</span>",
+      "css": ".ds-lombada { display: inline-grid; place-items: center; min-width: 34px; height: 22px; padding: 0 6px; border-radius: 2px; font: 700 12px 'Segoe UI', system-ui, sans-serif; font-variant-numeric: tabular-nums; white-space: nowrap; } .ds-pre { background: oklch(0.84 0.14 82); color: oklch(0.25 0.05 80); } .ds-tex { background: oklch(0.42 0.09 165); color: #fff; } .ds-pos { background: oklch(0.44 0.06 250); color: #fff; }"
+    },
+    {
+      "name": "Trilho Item",
+      "kind": "nav",
+      "refersTo": "lombada-textual",
+      "description": "Linha do trilho Estrutura: lombada mais titulo truncado.",
+      "html": "<div class=\"ds-rail\"><button class=\"ds-rail-item\"><span class=\"ds-l\">1.2</span><span class=\"ds-t\">Referencial teórico</span></button></div>",
+      "css": ".ds-rail { width: 216px; background: oklch(0.975 0.006 160); padding: 8px; } .ds-rail-item { display: flex; align-items: center; gap: 8px; width: 100%; padding: 5px 6px; border: 0; border-radius: 4px; background: transparent; text-align: left; color: oklch(0.25 0.025 165); font: 14px 'Segoe UI', system-ui, sans-serif; cursor: pointer; } .ds-rail-item:hover { background: oklch(0.92 0.02 160); } .ds-rail-item:focus-visible { outline: 2px solid oklch(0.42 0.09 165); outline-offset: 2px; } .ds-l { display: inline-grid; place-items: center; min-width: 34px; height: 22px; padding: 0 6px; border-radius: 2px; background: oklch(0.42 0.09 165); color: #fff; font: 700 12px 'Segoe UI', system-ui, sans-serif; font-variant-numeric: tabular-nums; } .ds-t { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }"
+    },
+    {
+      "name": "Aviso de margem",
+      "kind": "custom",
+      "refersTo": "aviso-margem",
+      "description": "Aviso ABNT de uma linha preso a margem direita, com conector de 1px.",
+      "html": "<div class=\"ds-wrap\"><button class=\"ds-aviso\">Fonte fora do padrão</button></div>",
+      "css": ".ds-wrap { position: relative; padding: 8px 0 8px 16px; } .ds-aviso { position: relative; max-width: 138px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 2px 6px; border: 1px solid oklch(0.5 0.19 28); border-radius: 2px; background: oklch(0.96 0.03 28); color: oklch(0.4 0.17 28); font: 600 12px/1.3 'Segoe UI', system-ui, sans-serif; text-align: left; cursor: pointer; } .ds-aviso::before { content: ''; position: absolute; right: 100%; top: 50%; width: 8px; border-top: 1px solid oklch(0.5 0.19 28); } .ds-aviso:hover { background: oklch(0.93 0.05 28); } .ds-aviso:focus-visible { outline: 2px solid oklch(0.42 0.09 165); outline-offset: 2px; }"
+    },
+    {
+      "name": "Diff de sugestao",
+      "kind": "card",
+      "refersTo": "button-primary",
+      "description": "Sugestao da IA: diff em serifa dentro de filete, aceitar e rejeitar.",
+      "html": "<div class=\"ds-diff\"><del>muito legal</del> <ins>relevante</ins> para a pesquisa.</div>",
+      "css": ".ds-diff { padding: 10px; border: 1px solid oklch(0.85 0.012 160); border-radius: 4px; background: #fff; font: 13px/1.6 'Times New Roman', serif; color: #111; } .ds-diff ins { background: oklch(0.9 0.1 150); text-decoration: none; } .ds-diff del { margin-right: .3em; background: oklch(0.92 0.06 28); color: oklch(0.4 0.12 28); }"
+    }
+  ],
+  "narrative": {
+    "northStar": "A Estante Classificada",
+    "overview": "A estrutura do trabalho e uma estante: cada titulo numerado (NBR 6024) ganha uma etiqueta de lombada no trilho esquerdo, como a classificacao decimal de uma biblioteca. O cromo e verde-biblioteca profundo, a bancada e um papel frio quase branco, a folha A4 e branca e o texto e o centro. A interface recua; so duas coisas elevam a voz: a cor da familia da lombada e o vermelho de correcao.\n\nA densidade e de ferramenta de sessao longa: controles de 32px, texto de interface em 12 a 14px, tudo separado por filetes de 1px em vez de caixas e sombras. Sans humanista de sistema para a interface, serifada Times New Roman somente dentro da folha, porque la ela e requisito da norma e nao estilo.",
+    "keyCharacteristics": [
+      "Cromo verde-biblioteca (barra superior), paineis em papel frio, folha A4 branca como unico plano claro puro.",
+      "Tres familias de lombada (amber pre-textual, verde textual, ardosia pos-textual) que codificam a posicao no trabalho.",
+      "Vermelho de correcao reservado a violacoes ABNT e a erros.",
+      "Filetes de 1px como unica estrutura; guias de margem 3/2/2/3 cm tambem a 1px.",
+      "Avisos de uma linha presos a margem direita, na altura do trecho."
+    ],
+    "rules": [
+      { "name": "A Regra da Lombada", "body": "A cor de uma etiqueta diz a que familia o titulo pertence e nada mais. Amber, verde e ardosia nao aparecem como decoracao fora das lombadas e da legenda.", "section": "colors" },
+      { "name": "A Regra do Vermelho Unico", "body": "Vermelho significa correcao devida. Nunca marca selecao, destaque ou marca da casa.", "section": "colors" },
+      { "name": "A Regra da Folha Serifada", "body": "Serifa so dentro da folha e do diff. A interface nunca usa Times.", "section": "typography" },
+      { "name": "A Regra da Unica Sombra", "body": "Nada alem da folha projeta sombra. Hierarquia entre paineis se faz com tom e filete.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do manter o texto no centro: folha A4 branca, margens 3/2/2/3 cm, Times 12pt, entrelinha 1,5.",
+      "Do separar regioes com filete de 1px em `colors.filete` em vez de caixas ou sombras.",
+      "Do usar a familia de cor da lombada somente para classificar titulos (pre, textual, pos).",
+      "Do reservar o vermelho de correcao a violacoes ABNT e erros reais, em uma linha, perto do trecho.",
+      "Do mostrar toda sugestao da IA como diff com aceitar e rejeitar.",
+      "Do respeitar `prefers-reduced-motion`; movimento so em entrada de aviso e sugestao."
+    ],
+    "donts": [
+      "Don't reproduzir a faixa cinza do Word nem um painel de chat de IA generico.",
+      "Don't usar vermelho para destaque, selecao ou marca.",
+      "Don't adicionar sombras fora da folha nem raios acima de 4px (exceto o contador).",
+      "Don't usar serifa na interface nem sans dentro da folha.",
+      "Don't apertar a folha com paineis; os paineis se rearranjam sob ela em telas estreitas."
+    ]
+  }
+}
