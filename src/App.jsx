@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { Library, FileDown, FileText, Check, X, Save, FolderOpen, Minus, Plus } from 'lucide-react';
 import { estrutura, verificar, diff, paragrafos, baixar, limpar, htmlSumario, htmlLista, htmlLegenda, htmlCapa, paginaDe, TOPO, PG, MODELO } from './abnt.js';
 import { baixarDocx } from './docx.js';
+import { pedirIA } from './ia.js';
 import Faixa from './Faixa.jsx';
 
 const NOME_FAM = { pre: 'Pré-textual', tex: 'Textual', pos: 'Pós-textual' };
@@ -174,16 +175,16 @@ export default function App() {
     const r = new FileReader(); r.onload = () => exec('insertImage', r.result); r.readAsDataURL(f); e.target.value = '';
   };
 
+  // No app instalado do Claude window.print() é inerte; desktop.window.print() abre o diálogo.
+  const imprimir = async () => { const d = await window.claude?.use?.('desktop').catch(() => null); (d?.window ? d.window.print() : Promise.reject()).catch(() => window.print()); };
+
   async function formalizar() {
     const r = saved.current && !saved.current.collapsed ? saved.current : null;
     const orig = r ? r.toString() : ed.current.innerText;
     if (!orig.trim()) { setErro('Selecione um trecho ou escreva algo para formalizar.'); return; }
     setBusy(true); setErro('');
     try {
-      const res = await fetch('/api/formalizar', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ texto: orig, modo }) });
-      const j = await res.json();
-      if (!res.ok) throw new Error(j.erro);
-      setSug({ orig, texto: j.texto, range: r });
+      setSug({ orig, texto: await pedirIA(orig, modo), range: r });
     } catch (e) { setErro(e.message || 'Não foi possível formalizar.'); }
     setBusy(false);
   }
@@ -215,7 +216,7 @@ export default function App() {
           <button className="ghost" aria-label="Abrir" onClick={() => abrirIn.current.click()} title="Abrir um trabalho salvo (.json)"><FolderOpen size={16} aria-hidden /> <span className="lbl">Abrir</span></button>
           <input ref={abrirIn} type="file" accept=".json,application/json" hidden onChange={abrir} />
           <button className="ghost" aria-label="Exportar para Word" onClick={() => baixarDocx(ed.current, titulo).catch(() => setErro('Não foi possível gerar o Word.'))}><FileText size={16} aria-hidden /> <span className="lbl">Word</span></button>
-          <button className="ghost" aria-label="Exportar para PDF" onClick={() => window.print()}><FileDown size={16} aria-hidden /> <span className="lbl">PDF</span></button>
+          <button className="ghost" aria-label="Exportar para PDF" onClick={imprimir}><FileDown size={16} aria-hidden /> <span className="lbl">PDF</span></button>
         </div>
       </header>
 

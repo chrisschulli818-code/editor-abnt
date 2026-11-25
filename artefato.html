@@ -1,0 +1,66 @@
+<title>Editor ABNT</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* Layout: uma coluna estreita, cabeçalho em "lombada" verde, depois listas curtas. */
+:root{--bg:#f4f6f2;--fg:#1c2a22;--mut:#5a6b61;--card:#fff;--line:#d5ddd3;--verde:#1f5a3d;--verde-t:#f4f6f2;--sel:#e3efe6;
+--serif:Georgia,"Times New Roman",serif;--sans:system-ui,sans-serif}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#121a15;--fg:#e6ede8;--mut:#9bada2;--card:#1a251e;--line:#2c3b31;--verde:#4fa377;--verde-t:#0e1511;--sel:#223229;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#121a15;--fg:#e6ede8;--mut:#9bada2;--card:#1a251e;--line:#2c3b31;--verde:#4fa377;--verde-t:#0e1511;--sel:#223229;color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font:16px/1.55 var(--sans);padding-block:0;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+main{max-width:760px;margin:0 auto;padding-block:40px 56px;display:grid;gap:36px}
+header{border-left:10px solid var(--verde);padding-left:20px}
+h1{font:600 clamp(2rem,6vw,3rem)/1.1 var(--serif);margin:0 0 8px;text-wrap:balance}
+header p{margin:0;color:var(--mut);max-width:60ch}
+.cta{display:inline-block;margin-top:20px;background:var(--verde);color:var(--verde-t);padding:12px 20px;border-radius:6px;font-weight:600;text-decoration:none}
+.cta:focus-visible{outline:3px solid var(--fg);outline-offset:3px}
+.nota{color:var(--mut);font-size:.875rem;margin-top:10px}
+h2{font:600 1.25rem/1.2 var(--serif);margin:0 0 12px}
+.grade{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.grade div{background:var(--card);border:1px solid var(--line);border-radius:6px;padding:14px 16px}
+.grade b{display:block;margin-bottom:4px}
+.grade span{color:var(--mut);font-size:.9rem}
+ul{margin:0;padding-left:1.1em;display:grid;gap:6px}
+.tag{display:inline-block;background:var(--sel);border-radius:4px;padding:1px 8px;font-size:.85rem;margin-right:6px}
+</style>
+<main>
+<header>
+<h1>Editor ABNT</h1>
+<p>Editor de texto na web, no estilo do Word, que já aplica as normas da ABNT para trabalhos acadêmicos e reescreve trechos em linguagem formal com IA.</p>
+<a class="cta" href="https://editor-abnt.onrender.com" target="_blank" rel="noopener">Abrir o editor</a>
+<p class="nota">Plano grátis do Render: se o site estiver parado, o primeiro acesso leva cerca de 30 a 50 segundos.</p>
+</header>
+
+<section>
+<h2>Editor</h2>
+<ul>
+<li>Abas Início, Inserir, Exibir e Revisão, com fonte, tamanho, negrito, itálico, sublinhado, cor, realce, listas, recuo, espaçamento, alinhamento e galeria de estilos.</li>
+<li>Capa, quebra de página, sumário e lista automáticos, imagem, tabela e legendas.</li>
+<li>Localizar e substituir (Ctrl+H), zoom, barra de status com página, palavras e caracteres, e salvamento automático no navegador.</li>
+</ul>
+</section>
+
+<section>
+<h2>Normas aplicadas</h2>
+<div class="grade">
+<div><b>NBR 14724</b><span>A4, margens 3/2/2/3 cm, fonte 12, espaçamento 1,5, recuo de 1,25 cm.</span></div>
+<div><b>NBR 6024</b><span>Numeração de seções em pré-textuais, textuais e pós-textuais.</span></div>
+<div><b>NBR 10520</b><span>Citação longa com mais de 3 linhas em bloco; citação sem referência é sinalizada.</span></div>
+<div><b>NBR 6023</b><span>Referências alinhadas à esquerda e em ordem alfabética.</span></div>
+</div>
+<p class="nota">As violações aparecem na hora, ao lado do texto. As páginas e o sumário são estimativas.</p>
+</section>
+
+<section>
+<h2>IA</h2>
+<p><span class="tag">Formalizar</span><span class="tag">Corrigir</span><span class="tag">Resumir</span><span class="tag">Ampliar</span><span class="tag">3ª pessoa</span></p>
+<p>Selecione um trecho (ou o texto todo), escolha o modo e veja a diferença palavra por palavra antes de aceitar ou desfazer. O texto enviado vai para a API do Google Gemini.</p>
+</section>
+
+<section>
+<h2>Exportação</h2>
+<ul>
+<li>Word (.docx) real, com página A4, margens ABNT, número de página, títulos, tabelas e imagens.</li>
+<li>PDF pela impressão do navegador, já com as margens da norma.</li>
+</ul>
+</section>
+</main>

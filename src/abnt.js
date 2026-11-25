@@ -145,7 +145,10 @@ export function limpar(html) {
   return d.body.innerHTML;
 }
 
-export function baixar(blob, nome) {
+export async function baixar(blob, nome) {
+  // Em artefato do Claude o download direto é bloqueado: usa o recurso "downloads".
+  const dl = await window.claude?.use?.('downloads').catch(() => null);
+  if (dl) { await dl.save({ filename: nome, data: blob }).catch(() => {}); return; }
   const a = Object.assign(document.createElement('a'), { href: URL.createObjectURL(blob), download: nome });
   a.click();
   URL.revokeObjectURL(a.href);
