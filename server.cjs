@@ -1,5 +1,5 @@
 // Servidor mínimo: arquivos estáticos + proxy para a IA (a chave nunca vai ao navegador).
-const http = require('http'), fs = require('fs'), path = require('path');
+const http = require('http'), fs = require('fs'), path = require('path'), zlib = require('zlib');
 const KEY = process.env.GEMINI_API_KEY;
 const MODEL = process.env.MODEL || 'gemini-3.8-flash';
 const PUB = path.join(__dirname, 'dist'); // saída do vite build
@@ -102,5 +102,11 @@ http.createServer(async (req, res) => {
   const f = path.join(PUB, req.url === '/' ? 'index.html' : path.normalize(req.url.split('?')[0]));
   if (!f.startsWith(PUB) || !fs.existsSync(f) || fs.statSync(f).isDirectory()) { res.statusCode = 404; return res.end('404'); }
   res.setHeader('content-type', { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.svg': 'image/svg+xml', '.ico': 'image/x-icon', '.json': 'application/json' }[path.extname(f)] || 'application/octet-stream');
-  fs.createReadStream(f).pipe(res);
+  const ext = path.extname(f);
+  if (f.includes(path.sep + 'assets' + path.sep)) res.setHeader('cache-control', 'public, max-age=31536000, immutable'); // arquivos com hash no nome
+  const gz = /\.(html|js|css|svg|json)$/.test(ext) && /gzip/.test(req.headers['accept-encoding'] || '');
+  if (gz) { res.setHeader('content-encoding', 'gzip'); res.setHeader('vary', 'accept-encoding'); }
+  const src = fs.createReadStream(f);
+  src.on('error', () => res.destroy());
+  gz ? src.pipe(zlib.createGzip()).pipe(res) : src.pipe(res);
 }).listen(process.env.PORT || 3000, () => console.log('servidor no ar'));

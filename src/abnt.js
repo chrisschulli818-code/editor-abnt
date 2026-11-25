@@ -41,8 +41,9 @@ const CIT = /\(([A-ZÀ-Ý][A-ZÀ-Ý'\- ;]*?),\s*\d{4}[a-z]?[^)]*\)/g; // (SOBREN
 // Verificador: usa o estilo calculado, então pega o que o usuário mudou e o que veio colado.
 export function verificar(ed) {
   const out = [], vistos = new Set();
-  const add = (el, curto, longo) => { const k = curto + '|' + topo(el, ed); if (!vistos.has(k)) { vistos.add(k); out.push({ el, curto, longo, y: topo(el, ed) }); } };
+  const add = (el, curto, longo) => { const y = topo(el, ed), k = curto + '|' + y; if (!vistos.has(k)) { vistos.add(k); out.push({ el, curto, longo, y }); } };
   ed.querySelectorAll('p,h1,h2,li,td,blockquote,span,font,b,i,u,div').forEach(n => {
+    if (/^(SPAN|B|I|U|DIV)$/.test(n.tagName) && !n.hasAttribute('style')) return; // sem estilo próprio herda do bloco, que já é checado
     if (!n.textContent.trim()) return;
     const cs = getComputedStyle(n), pt = parseFloat(cs.fontSize) * .75, cit = n.closest('blockquote, .leg');
     const alvo = cit ? 10 : 12;
@@ -63,11 +64,11 @@ export function verificar(ed) {
 
   // NBR 10520: citação direta com mais de 3 linhas em bloco; citação (SOBRENOME, ano) precisa de referência.
   // shortcut: só reconhece o sistema autor-data com sobrenome em maiúsculas e citação que ocupa o parágrafo todo; ampliar quando houver demanda.
-  const autores = itens.map(p => sem(p.textContent));
+  const autores = itens.map(p => sem(p.textContent)), ehRef = new Set(itens);
   ed.querySelectorAll('p,blockquote,li,td').forEach(n => {
-    if (n.querySelector('p,blockquote,li,td') || itens.includes(n) || n.closest('.sumario,.lista-ilus')) return;
-    const t = n.textContent.trim(), cs = getComputedStyle(n);
-    if (!n.closest('blockquote, .leg, .simples') && /^["“]/.test(t) && /["”]\s*(\([^)]*\))?\.?$/.test(t) && n.offsetHeight / parseFloat(cs.lineHeight) > 3.2)
+    if (n.querySelector('p,blockquote,li,td') || ehRef.has(n) || n.closest('.sumario,.lista-ilus')) return;
+    const t = n.textContent.trim();
+    if (!n.closest('blockquote, .leg, .simples') && /^["“]/.test(t) && /["”]\s*(\([^)]*\))?\.?$/.test(t) && n.offsetHeight / parseFloat(getComputedStyle(n).lineHeight) > 3.2)
       add(n, 'citação longa', 'Citação direta com mais de 3 linhas vai em bloco recuado 4 cm, fonte 10 (NBR 10520).');
     for (const m of t.matchAll(CIT)) {
       if (!hr) { add(n, 'sem Referências', 'Há citação, mas o trabalho não tem a seção Referências.'); break; }
@@ -118,10 +119,19 @@ export function htmlLista(ed, tipo) {
   const itens = [...ed.querySelectorAll(`.leg[data-k="${tipo}"]`)];
   return bloco('lista-ilus', tipo === 'Tabela' ? 'LISTA DE TABELAS' : 'LISTA DE ILUSTRAÇÕES', itens.map(el => itemDe(el, ed, el.textContent.trim())).join(''), ` data-k="${tipo}"`);
 }
-// shortcut: o número vem da contagem atual; inserir uma legenda no meio não renumera as outras, então ajuste à mão.
 export function htmlLegenda(ed, tipo) {
   const n = ed.querySelectorAll(`.leg[data-k="${tipo}"]`).length + 1;
   return `<p class="leg" data-k="${tipo}" style="text-align:center;text-indent:0;font-size:10pt;line-height:1">${tipo} ${n} – Título</p>`;
+}
+
+// Renumera as legendas na ordem do texto: inserir uma no meio muda o número das seguintes.
+export function renumerar(ed) {
+  const n = {};
+  ed.querySelectorAll('.leg[data-k]').forEach(el => {
+    const k = el.dataset.k, t = el.firstChild;
+    n[k] = (n[k] || 0) + 1;
+    if (t?.nodeType === 3) t.nodeValue = t.nodeValue.replace(new RegExp('^(\\s*' + k + '\\s+)\\d+'), '$1' + n[k]);
+  });
 }
 
 // Capa e folha de rosto (NBR 14724): linhas em branco fazem o papel do espaçamento vertical.

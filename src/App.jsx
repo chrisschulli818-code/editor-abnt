@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { Library, FileDown, FileText, Check, X, Save, FolderOpen, Minus, Plus } from 'lucide-react';
-import { estrutura, verificar, diff, paragrafos, baixar, limpar, htmlSumario, htmlLista, htmlLegenda, htmlCapa, paginaDe, TOPO, PG, MODELO } from './abnt.js';
+import { estrutura, verificar, diff, paragrafos, baixar, limpar, htmlSumario, htmlLista, htmlLegenda, htmlCapa, renumerar, paginaDe, TOPO, PG, MODELO } from './abnt.js';
 import { baixarDocx } from './docx.js';
 import { pedirIA } from './ia.js';
 import Faixa from './Faixa.jsx';
@@ -17,7 +17,7 @@ export default function App() {
   const ed = useRef(null), bench = useRef(null), saved = useRef(null), fileIn = useRef(null), abrirIn = useRef(null), capaRef = useRef(null);
   const salvo = useRef((() => { try { return JSON.parse(localStorage.getItem(CHAVE)) || {}; } catch { return {}; } })());
   const [titulo, setTitulo] = useState(salvo.current.titulo || 'Meu trabalho');
-  const deb = useRef();
+  const deb = useRef(), sv = useRef();
   const [secoes, setSecoes] = useState([]);
   const [avisos, setAvisos] = useState([]);
   const [ajuste, setAjuste] = useState(1), [zoomU, setZoomU] = useState(null); // ajuste = zoom que cabe na tela; zoomU = escolha do usuário
@@ -40,6 +40,10 @@ export default function App() {
     setAvisos(verificar(ed.current));
     setPaginas(Math.max(1, Math.ceil((ed.current.offsetHeight - TOPO - 75.6 - 2) / PG)));
     const t = ed.current.innerText.trim(); setPal(t ? t.split(/\s+/).length : 0); setCar(t.replace(/\n/g, '').length); setRev(n => n + 1);
+    clearTimeout(sv.current); sv.current = setTimeout(guardar, 800); // o HTML pode ter fotos grandes: grava depois de a digitação parar
+  }, []);
+  const guardar = useCallback(() => {
+    if (!ed.current) return;
     try { localStorage.setItem(CHAVE, JSON.stringify({ html: ed.current.innerHTML, titulo: tituloRef.current })); setSemSalvar(false); } catch { setSemSalvar(true); } // cota cheia (fotos grandes): avisa em vez de falhar calado
   }, []);
   const agendar = () => { clearTimeout(deb.current); deb.current = setTimeout(analisar, 200); }; // digitação: evita recalcular a cada tecla
@@ -68,13 +72,23 @@ export default function App() {
 
   // Seleção guardada: clicar em botões ou selects a perderia.
   useEffect(() => {
-    const f = () => {
-      const s = getSelection();
-      if (s.rangeCount && ed.current?.contains(s.anchorNode)) { saved.current = s.getRangeAt(0).cloneRange(); lerFmt(s); }
+    let raf = 0;
+    const f = () => { // arrastar a seleção dispara muitos eventos: lê o formato uma vez por quadro
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(() => {
+        const s = getSelection();
+        if (s.rangeCount && ed.current?.contains(s.anchorNode)) { saved.current = s.getRangeAt(0).cloneRange(); lerFmt(s); }
+      });
     };
     document.addEventListener('selectionchange', f);
-    return () => document.removeEventListener('selectionchange', f);
+    return () => { cancelAnimationFrame(raf); document.removeEventListener('selectionchange', f); };
   }, [lerFmt]);
+
+  useEffect(() => { // grava na hora se a aba fechar antes dos 800 ms
+    const f = () => { if (sv.current) { clearTimeout(sv.current); sv.current = null; guardar(); } };
+    addEventListener('pagehide', f); document.addEventListener('visibilitychange', f);
+    return () => { removeEventListener('pagehide', f); document.removeEventListener('visibilitychange', f); };
+  }, [guardar]);
 
   useEffect(() => { // Ctrl+H abre localizar e substituir, como no Word
     const k = e => { if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'h') { e.preventDefault(); setAchar(true); } };
@@ -89,7 +103,7 @@ export default function App() {
     return () => ro.disconnect();
   }, [avisosM]);
 
-  useEffect(() => { const t = setTimeout(analisar, 0); return () => clearTimeout(t); }, [analisar, zoom, titulo]);
+  useEffect(() => { agendar(); return () => clearTimeout(deb.current); }, [zoom, titulo]); // arrastar o zoom ou digitar o título: uma análise só, no fim
 
   const foco = () => {
     ed.current.focus();
@@ -160,8 +174,8 @@ export default function App() {
     if (k === 'capa') return capaRef.current.showModal();
     if (k === 'quebra') { colocar('<p class="pb" style="text-indent:0;page-break-after:always"><br></p>'); return analisar(); }
     if (k === 'sumario') { bloco('.sumario', htmlSumario(e)); bloco('.sumario', htmlSumario(e)); } // 2ª passada: o próprio sumário muda as páginas
-    else if (k === 'lista-Figura' || k === 'lista-Tabela') { const t = k.slice(6); bloco(`.lista-ilus[data-k="${t}"]`, htmlLista(e, t)); }
-    else colocar(htmlLegenda(e, k));
+    else if (k === 'lista-Figura' || k === 'lista-Tabela') { const t = k.slice(6); renumerar(e); bloco(`.lista-ilus[data-k="${t}"]`, htmlLista(e, t)); }
+    else { colocar(htmlLegenda(e, k)); renumerar(e); }
     analisar();
   }
   function aplicarCapa(ev) {
@@ -170,6 +184,20 @@ export default function App() {
     ed.current.insertAdjacentHTML('afterbegin', htmlCapa(d));
     analisar();
   }
+  // Tab como no Word: em lista aninha (Shift+Tab desaninha); em tabela vai à próxima célula e, na última, cria uma linha.
+  const tecla = e => {
+    if (e.key !== 'Tab') return;
+    const n = getSelection().anchorNode, el = n?.nodeType === 1 ? n : n?.parentElement, td = el?.closest('td');
+    if (el?.closest('li')) { e.preventDefault(); document.execCommand(e.shiftKey ? 'outdent' : 'indent'); agendar(); }
+    else if (td) {
+      e.preventDefault();
+      const cs = [...td.closest('table').querySelectorAll('td')], i = cs.indexOf(td) + (e.shiftKey ? -1 : 1);
+      if (i < 0) return;
+      if (i >= cs.length) { const tr = td.parentElement, nova = tr.cloneNode(true); nova.querySelectorAll('td').forEach(c => { c.innerHTML = '&nbsp;'; }); tr.after(nova); cs.push(...nova.cells); }
+      const r = document.createRange(); r.selectNodeContents(cs[i]); r.collapse(true);
+      const s = getSelection(); s.removeAllRanges(); s.addRange(r); agendar();
+    }
+  };
   const imagem = e => {
     const f = e.target.files[0]; if (!f) return;
     const r = new FileReader(); r.onload = () => exec('insertImage', r.result); r.readAsDataURL(f); e.target.value = '';
@@ -268,7 +296,7 @@ export default function App() {
               <div className={'sheet' + (guias ? '' : ' sem-guias') + (quebras ? '' : ' sem-quebras')}>
                 <div className="guia" aria-hidden />
                 {Array.from({ length: paginas - 1 }, (_, i) => <div key={i} className="quebra" style={{ top: TOPO + PG * (i + 1) }} aria-hidden><span>página {i + 2}</span></div>)}
-                <div ref={ed} className="ed" contentEditable suppressContentEditableWarning spellCheck={ortografia} lang="pt-BR" role="textbox" aria-multiline="true" aria-label="Texto do trabalho" onInput={agendar} />
+                <div ref={ed} className="ed" contentEditable suppressContentEditableWarning spellCheck={ortografia} lang="pt-BR" role="textbox" aria-multiline="true" aria-label="Texto do trabalho" onInput={agendar} onKeyDown={tecla} />
               </div>
               <div className="avisos-margem" aria-hidden>
                 {chips.map((a, i) => (
